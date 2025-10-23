@@ -1,0 +1,47 @@
+name: Java CI with Maven # name on the GHA UI
+ 
+on: # when to trigger the workflow
+  push:
+    branches: [ "master" ]
+  pull_request:
+    branches: [ "master" ]
+
+jobs: #each job run independtly
+  build:
+    runs-on: ubuntu-latest  # uses a Linux VM hosted by GitHub
+
+    steps:
+        # Step 1: Get the source code
+        - name: Checkout code 
+          uses: actions/checkout@v4
+
+        # Step 2: Install Java 25 (Temurin = free OpenJDK build)
+        - name: Set up Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: 'temurin'
+            java-version: '25'
+
+        # Step 3: Cache Maven dependencies
+        # Speeds up builds by reusing previously downloaded libraries
+        - name: Cache Maven repo
+          uses: actions/cache@v4
+          with:
+            path: ~/.m2/repository
+            key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
+            restore-keys: ${{ runner.os }}-maven-
+
+        # Step 4: Build and run tests
+        - name: Build & Test
+          run: mvn clean verify
+
+        # Step 5: Package the app (create JAR)
+        - name: Package JAR
+          run: mvn clean package -DskipTests
+
+        # Step 6: Upload the JAR artifact (store it for deployment)
+        - name: 🚀 Upload Artifact
+          uses: actions/upload-artifact@v4
+          with:
+            name: petclinic-jar
+            path: target/*.jar
