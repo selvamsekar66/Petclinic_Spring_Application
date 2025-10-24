@@ -3,8 +3,7 @@ name: Java CI with Maven # name on the GHA UI
 on: # when to trigger the workflow
   push:
     branches: [ "master" ]
-  pull_request:
-    branches: [ "master" ]
+
 
 jobs: #each job run independtly
   build:
@@ -46,4 +45,36 @@ jobs: #each job run independtly
             name: petclinic-jar
             path: target/*.jar
 
-        # Step 7: integrate Sonar code test
+
+  security-check:
+    runs-on: self-hosted  # AWS hosted self runners
+    needs: build
+
+    steps:
+
+        - name: Checkout code 
+          uses: actions/checkout@v4
+
+        - name: Trivy installation
+          run: |
+            sudo apt update -y
+            sudo apt-get install wget gnupg lsb-release
+            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
+            echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
+            sudo apt-get update -y
+            sudo apt-get install trivy -y
+
+        - name: Trivy scan
+          run: |
+            trivy fs --format table -o fs-report.txt .
+
+        - name: git leaks installatiom
+          run: |
+            sudo apt install gitleaks -y
+
+        - name: gitleaks code scan
+          run: |
+            gitleaks detect source . -r gitleaks-report.json -f json
+
+
+
