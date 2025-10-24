@@ -8,7 +8,7 @@ on: # when to trigger the workflow
 
 jobs: #each job run independtly
   build:
-    runs-on: ubuntu-latest  # uses a Linux VM hosted by GitHub
+    runs-on: selvam-runner  # AWS hosted self runners
 
     steps:
         # Step 1: Get the source code
@@ -47,12 +47,3 @@ jobs: #each job run independtly
             path: target/*.jar
 
         # Step 7: integrate Sonar code test
-        - name: SonarCloud Scan
-          uses: SonarSource/sonarcloud-github-action@v2
-          with:
-            projectBaseDir: .
-            args: >
-             -Dsonar.organization=githubaction-cicd-2410
-             -Dsonar.projectKey=githubaction-cicd-2410
-             -Dsonar.host.url=https://sonarcloud.io
-             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
