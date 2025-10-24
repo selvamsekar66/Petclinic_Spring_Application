@@ -8,7 +8,7 @@ on: # when to trigger the workflow
 
 jobs: #each job run independtly
   build:
-    runs-on: selvam-runner  # AWS hosted self runners
+    runs-on: self-hosted  # AWS hosted self runners
 
     steps:
         # Step 1: Get the source code
