@@ -40,8 +40,19 @@ jobs: #each job run independtly
           run: mvn clean package -DskipTests
 
         # Step 6: Upload the JAR artifact (store it for deployment)
-        - name: 🚀 Upload Artifact
+        - name: Upload Artifact
           uses: actions/upload-artifact@v4
           with:
             name: petclinic-jar
             path: target/*.jar
+
+        # Step 7: integrate Sonar code test
+        - name: SonarCloud Scan
+          uses: SonarSource/sonarcloud-github-action@v2
+          with:
+            projectBaseDir: .
+            args: >
+             -Dsonar.organization= https://sonarcloud.io/organizations/githubaction-cicd-2410
+             -Dsonar.projectKey=githubaction-cicd-2410
+             -Dsonar.host.url=https://sonarcloud.io
+             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
