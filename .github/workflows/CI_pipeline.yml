@@ -57,10 +57,10 @@ jobs: #each job run independtly
           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
         with:
           args: >
-            -Dsonar.projectKey=my-java-app
-            -Dsonar.projectName="My Java Application"
+            -Dsonar.organization=sonartest2510
+            -Dsonar.projectKey=sonartest2510_javaapplication
             -Dsonar.sources=.
-            -Dsonar.java.binaries=target
+            -Dsonar.java.binaries=target/
             -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
 
