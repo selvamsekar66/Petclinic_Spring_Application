@@ -76,5 +76,44 @@ jobs: #each job run independtly
           run: |
             gitleaks detect source . -r gitleaks-report.json -f json
 
+  build_sonarqube_Scanner:
+    runs-on: self-hosted  # AWS hosted self runners
+    needs:
+      - build
+      - security-check
 
+    steps:
+        # Step 1: Get the source code
+        - name: Checkout code 
+          uses: actions/checkout@v4
+
+        # Step 2: Install Java 25 (Temurin = free OpenJDK build)
+        - name: Set up Java
+          uses: actions/setup-java@v4
+          with:
+            distribution: 'temurin'
+            java-version: '25'
+        
+        - name: Package JAR
+          run: mvn clean package -DskipTests
+        
+
+        - uses: actions/checkout@v4
+          with:
+         # Disabling shallow clones is recommended for improving the relevancy of reporting
+            fetch-depth: 0
+        - name: SonarQube Scan
+          uses: SonarSource/sonarqube-scan-action@v6.0.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
+          env:
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+
+        - name: SonarQube Quality Gate check
+          id: sonarqube-quality-gate-check
+          uses: sonarsource/sonarqube-quality-gate-action@master
+          with:
+           pollingTimeoutSec: 600
+          env:
+           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
 
