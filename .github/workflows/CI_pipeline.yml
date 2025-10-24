@@ -106,7 +106,7 @@ jobs: #each job run independtly
           uses: SonarSource/sonarqube-scan-action@v6.0.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
           env:
            SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
+           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}   
 
         - name: SonarQube Quality Gate check
           id: sonarqube-quality-gate-check
