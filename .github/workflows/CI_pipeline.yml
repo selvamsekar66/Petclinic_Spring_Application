@@ -52,7 +52,7 @@ jobs: #each job run independtly
           with:
             projectBaseDir: .
             args: >
-             -Dsonar.organization= https://sonarcloud.io/organizations/githubaction-cicd-2410
+             -Dsonar.organization=githubaction-cicd-2410
              -Dsonar.projectKey=githubaction-cicd-2410
              -Dsonar.host.url=https://sonarcloud.io
              -Dsonar.login=${{ secrets.SONAR_TOKEN }}
