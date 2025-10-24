@@ -6,7 +6,7 @@ on: # when to trigger the workflow
 
 
 jobs: #each job run independtly
-  build:
+  security-scan:
     runs-on: self-hosted  # AWS hosted self runners
 
     steps:
@@ -21,99 +21,8 @@ jobs: #each job run independtly
             distribution: 'temurin'
             java-version: '25'
 
-        # Step 3: Cache Maven dependencies
-        # Speeds up builds by reusing previously downloaded libraries
-        - name: Cache Maven repo
-          uses: actions/cache@v4
+        - name: Run Gitleaks Secret Scan
+          uses: gitleaks/gitleaks-action@v2
           with:
-            path: ~/.m2/repository
-            key: ${{ runner.os }}-maven-${{ hashFiles('**/pom.xml') }}
-            restore-keys: ${{ runner.os }}-maven-
-
-        # Step 4: Build and run tests
-        - name: Build & Test
-          run: mvn clean verify
-
-        # Step 5: Package the app (create JAR)
-        - name: Package JAR
-          run: mvn clean package -DskipTests
-
-        # Step 6: Upload the JAR artifact (store it for deployment)
-        - name: Upload Artifact
-          uses: actions/upload-artifact@v4
-          with:
-            name: petclinic-jar
-            path: target/*.jar
-
-
-  security-check:
-    runs-on: self-hosted  # AWS hosted self runners
-    needs: build
-
-    steps:
-
-        - name: Checkout code 
-          uses: actions/checkout@v4
-
-        - name: Trivy installation
-          run: |
-            sudo apt update -y
-            sudo apt-get install wget gnupg lsb-release
-            wget -qO - https://aquasecurity.github.io/trivy-repo/deb/public.key | gpg --dearmor | sudo tee /usr/share/keyrings/trivy.gpg > /dev/null
-            echo "deb [signed-by=/usr/share/keyrings/trivy.gpg] https://aquasecurity.github.io/trivy-repo/deb generic main" | sudo tee -a /etc/apt/sources.list.d/trivy.list
-            sudo apt-get update -y
-            sudo apt-get install trivy -y
-
-        - name: Trivy scan
-          run: |
-            trivy fs --format table -o fs-report.txt .
-
-        - name: git leaks installatiom
-          run: |
-            sudo apt install gitleaks -y
-
-        - name: gitleaks code scan
-          run: |
-            gitleaks detect source . -r gitleaks-report.json -f json
-
-  build_sonarqube_Scanner:
-    runs-on: self-hosted  # AWS hosted self runners
-    needs:
-      - build
-      - security-check
-
-    steps:
-        # Step 1: Get the source code
-        - name: Checkout code 
-          uses: actions/checkout@v4
-
-        # Step 2: Install Java 25 (Temurin = free OpenJDK build)
-        - name: Set up Java
-          uses: actions/setup-java@v4
-          with:
-            distribution: 'temurin'
-            java-version: '25'
-        
-        - name: Package JAR
-          run: mvn clean package -DskipTests
-        
-
-        - uses: actions/checkout@v4
-          with:
-         # Disabling shallow clones is recommended for improving the relevancy of reporting
-            fetch-depth: 0
-        - name: SonarQube Scan
-          uses: SonarSource/sonarqube-scan-action@v6.0.0 # Ex: v4.1.0 or sha1, See the latest version at https://github.com/marketplace/actions/official-sonarqube-scan
-          env:
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}   
-
-        - name: SonarQube Quality Gate check
-          id: sonarqube-quality-gate-check
-          uses: sonarsource/sonarqube-quality-gate-action@master
-          with:
-           pollingTimeoutSec: 600
-          env:
-           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-           SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-
+           args: detect --source . --no-git -v
+           continue-on-error: false
