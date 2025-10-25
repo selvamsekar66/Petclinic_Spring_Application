@@ -2,7 +2,7 @@ name: Java CI with Maven chenna
 
 on:
  push:
-    branches: [ "main" ]
+    branches: [ "master" ]
 
 jobs:
   build_chenna:
