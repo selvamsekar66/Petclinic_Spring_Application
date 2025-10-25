@@ -1,66 +1,22 @@
-name: Java CI with Maven # name on the GHA UI
- 
-on: # when to trigger the workflow
-  push:
-    branches: [ "master" ]
+name: Java CI with Maven chenna
 
+on:
+ push:
+    branches: [ "main" ]
 
-jobs: #each job run independtly
-  security-scan:
-    runs-on: self-hosted  # AWS hosted self runners
-
-    steps:
-        # Step 1: Get the source code
-        - name: Checkout code 
-          uses: actions/checkout@v4
-
-        # Step 2: Install Java 25 (Temurin = free OpenJDK build)
-        - name: Set up Java
-          uses: actions/setup-java@v4
-          with:
-            distribution: 'temurin'
-            java-version: '25'
-
-        - name: Run Gitleaks Secret Scan
-          uses: gitleaks/gitleaks-action@v2
-          with:
-           args: detect --source . --no-git -v
-           continue-on-error: false
-
-  build-and-analyze:
+jobs:
+  build_chenna:
     runs-on: ubuntu-latest
-    needs: security-scan  # Runs only if Gitleaks passes
+
     steps:
-      - name: Checkout Code
+      - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Setup Java
+      - name: Set up JDK 25
         uses: actions/setup-java@v4
         with:
-          distribution: 'temurin'
           java-version: '25'
+          distribution: 'temurin'
 
-      - name: Cache Maven Dependencies
-        uses: actions/cache@v4
-        with:
-          path: ~/.m2
-          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
-          restore-keys: ${{ runner.os }}-m2
-
-      - name: Build Project
-        run: mvn clean package -DskipTests
-
-      - name: SonarQube Scan
-        uses: SonarSource/sonarqube-scan-action@v6.0.0
-        env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-          SONAR_HOST_URL: ${{ vars.SONAR_HOST_URL }}
-        with:
-          args: >
-            -Dsonar.organization=sonartest2510
-            -Dsonar.projectKey=sonartest2510_javaapplication
-            -Dsonar.sources=.
-            -Dsonar.java.binaries=target/
-            -Dsonar.host.url=${{ vars.SONAR_HOST_URL }}
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
-
+      - name: Build with Maven
+        run: mvn -B clean package --file pom.xml 
